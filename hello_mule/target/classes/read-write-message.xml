@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.7.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+    <flow name="read-messageFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/read" doc:name="HTTP"/>
+        <logger message="#[message.inboundProperties.'http.request.uri']" level="INFO" doc:name="Logger"/>
+    </flow>
+    <flow name="read-and-return-messageFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/read-and-return" doc:name="HTTP"/>
+        <set-payload value="#[message.inboundProperties.'http.query.string']" doc:name="Set Payload"/>
+        <logger message="#[message.inboundProperties.'http.query.params']" level="INFO" doc:name="Logger"/>
+    </flow>
+    <flow name="read-write-messageFlow1">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/read-and-write" doc:name="HTTP"/>
+        <set-payload value="#['Hello Mule']" doc:name="Set Payload"/>
+        <set-property propertyName="qpname" value="#[message.inboundProperties.'http.query.params'.name]" doc:name="Property"/>
+        <set-payload value="#[message.outboundProperties.qpname]" doc:name="Set Payload"/>
+        <logger message="#[message.outboundProperties.qpname]" level="INFO" doc:name="Logger"/>
+    </flow>
+</mule>
+
+<!-- 	http://localhost:8081/read-and-return?name=dheeraj&age=26
+		http://localhost:8081/read-and-write?name=dheeraj&age=26 -->

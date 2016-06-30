@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.7.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+    <db:mysql-config name="MySQL_Configuration" host="10.125.129.52" port="3306" user="root" password="admin" database="test" doc:name="MySQL Configuration"/>
+    <db:oracle-config name="Oracle_Configuration" host="10.125.129.52" port="1521" instance="XE" user="DOKS" password="test" doc:name="Oracle Configuration"/>
+    <flow name="MySQL-DB-Integration">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/mysql" doc:name="HTTP"/>
+        <db:select config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[select * from USERDETAILS]]></db:parameterized-query>
+        </db:select>
+        <logger message="Success" level="INFO" doc:name="Logger"/>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <file:outbound-endpoint path="C:\Users\Dheeraj.Kumar\Desktop\Mule_Test" outputPattern="mysql_json.txt" responseTimeout="10000" doc:name="File"/>
+    </flow>
+    <flow name="SelectQueryWithParam">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/mysql-param" doc:name="HTTP"/>
+        <logger level="INFO" doc:name="Logger"/>
+        <db:select config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[select * from USERDETAILS where USERID = #[message.inboundProperties.'http.query.params'.userid]]]></db:parameterized-query>
+        </db:select>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+    </flow>
+    <flow name="Update">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/mysql-update" doc:name="HTTP"/>
+        <db:update config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[update USERDETAILS set ADDRESS = #[message.inboundProperties.'http.query.params'.address], USERNAME = #[message.inboundProperties.'http.query.params'.username], COMPANY = #[message.inboundProperties.'http.query.params'.company] where USERID = #[message.inboundProperties.'http.query.params'.userid]]]></db:parameterized-query>
+        </db:update>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+        
+    </flow>
+    <flow name="InsertJson">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/mysql-insert" doc:name="HTTP" allowedMethods="POST"/>
+        <json:json-to-object-transformer doc:name="JSON to Object"/>
+        <logger message="#[json:id] #[json:name] #[json:address] #[json:company]" level="INFO" doc:name="Logger"/>
+        <db:insert config-ref="MySQL_Configuration"  doc:name="Database" transactionalAction="NOT_SUPPORTED">
+            <db:parameterized-query><![CDATA[insert into USERDETAILS values(#[json:id],#[json:name],#[json:address],#[json:company])]]></db:parameterized-query>
+        </db:insert>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+    </flow>
+    <flow name="Oracle_DB_Integration">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/oracle" doc:name="HTTP"/>
+        <db:select config-ref="Oracle_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[select * from USERDETAILS]]></db:parameterized-query>
+        </db:select>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+    </flow>
+</mule>
+
+<!-- http://localhost:8081/mysql
+	 http://localhost:8081/mysql-param?userid=101
+	 http://localhost:8081/mysql-update?username=rushikesh.ubarhande&address=Aundh&company=Techsignia%20Solutions%20Pvt.%20Ltd.&userid=106
+	 localhost:8081/mysql-insert
+	 {
+	"id": "107",
+	"name": "abc.def",
+	"address": "",
+	"company": ""
+} -->

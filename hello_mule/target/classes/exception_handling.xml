@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.7.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
+    <flow name="exception_handlingFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/filter-exception" allowedMethods="POST" doc:name="HTTP">
+            <http:error-response-builder statusCode="#[flowVars['statusCode']]" reasonPhrase="#[flowVars['reason']]"/>
+        </http:listener>
+        <json:json-to-object-transformer doc:name="JSON to Object" returnClass="java.util.HashMap"/>
+        <custom-filter class="com.tech.doks.mule.filter.InputDataValidator" doc:name="Custom"/>
+        <logger message="Payload : #[payload]" level="INFO" doc:name="Logger"/>
+        <logger message="#[message]" level="INFO" doc:name="Logger"/>
+        <set-payload value="Payload : #[payload]" doc:name="Set Payload"/>
+        <choice-exception-strategy doc:name="Choice Exception Strategy">
+            <catch-exception-strategy doc:name="Catch Missing Data Exception Strategy" when="#[exception.causedBy(java.lang.NullPointerException)]">
+                <set-payload value="Missing Data : #[payload]" doc:name="Set Payload"/>
+                <set-variable variableName="statusCode" value="400" doc:name="Variable"/>
+                <set-variable variableName="reason" value="Missing input data" doc:name="Variable"/>
+            </catch-exception-strategy>
+            <catch-exception-strategy doc:name="Catch Invalid Data Exception Strategy" when="#[exception.causedBy(java.lang.IllegalArgumentException)]">
+                <set-payload value="Invalid Data #[payload]" doc:name="Set Payload"/>
+                <set-variable variableName="statusCode" value="400" doc:name="Variable"/>
+                <set-variable variableName="reason" value="Invalid input data" doc:name="Variable"/>
+            </catch-exception-strategy>
+        </choice-exception-strategy>
+    </flow>
+</mule>
+
+<!-- localhost:8081/filter-exception
+	 {
+	"email":"aaa@aaa.aaa",
+	"item name":"aa",
+	"item units":"10",
+	"item price per unit":"1",
+	"membership":"free"
+} -->

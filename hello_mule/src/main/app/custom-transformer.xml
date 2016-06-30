@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.7.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+    <flow name="custom-transformerFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/custom-transformer" doc:name="HTTP"/>
+        <set-payload value="#[message.inboundProperties.'http.request.uri']" doc:name="Set Payload"/>
+        <custom-transformer class="com.tech.doks.model.NameTransformer" doc:name="Java"/>
+        <logger level="INFO" doc:name="Logger"/>
+        <set-payload value="Hello #[payload]" doc:name="Set Payload"/>
+    </flow>
+</mule>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.7.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+    <jms:activemq-connector name="Active_MQ" specification="1.1" brokerURL="tcp://localhost:61616" validateConnections="true" doc:name="Active MQ"/>
+    <flow name="http-echoFlow1">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/jms-tutorial" doc:name="HTTP"/>
+        <set-payload value="#[message.inboundProperties.'http.query.string']" doc:name="Set Payload"/>
+        <jms:outbound-endpoint queue="MULE.DEMO" connector-ref="Active_MQ" doc:name="JMS">
+            <jms:transaction action="NOT_SUPPORTED"/>
+        </jms:outbound-endpoint>
+    </flow>
+    <flow name="jms_integrationFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/jms" doc:name="HTTP" allowedMethods="GET"/>
+        <set-payload value="#[message.toString();]" doc:name="Set Payload"/>
+        <jms:outbound-endpoint  queue="JMS" connector-ref="Active_MQ" doc:name="JMS">
+            <jms:transaction action="NOT_SUPPORTED"/>
+        </jms:outbound-endpoint>
+        <file:outbound-endpoint path="C:\Users\Dheeraj.Kumar\Desktop\Mule_Test\JMS" outputPattern="write_in_queue.txt" responseTimeout="10000" doc:name="File"/>
+    </flow>
+    <flow name="jms_integrationFlow1">
+        <jms:inbound-endpoint queue="JMS" connector-ref="Active_MQ" doc:name="JMS"/>
+        <object-to-string-transformer doc:name="Object to String"/>
+        <file:outbound-endpoint path="C:\Users\Dheeraj.Kumar\Desktop\Mule_Test\JMS" outputPattern="read_from_activeMQ.txt" responseTimeout="10000" doc:name="File"/>
+    </flow>
+</mule>
+
+<!-- http://localhost:8081/jms-tutorial?name=dheeraj&dob=07-10-1990&company=techsignia solutions pvt. ltd.
+	 http://localhost:8081/jms?name=hello_world_from_mule
+	 http://localhost:8081/jms?name=dheeraj&dob=07-10-1990&company=techsignia -->

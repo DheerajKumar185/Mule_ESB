@@ -1,0 +1,6 @@
+com\tech\doks\mule\components\MuleJavaComponent.class
+com\tech\doks\mule\svc\HelloServices.class
+com\tech\doks\mule\filter\InputDataValidator.class
+com\tech\doks\mule\svc\TimeServices.class
+com\tech\doks\model\NameTransformer.class
+com\tech\doks\model\Hello.class

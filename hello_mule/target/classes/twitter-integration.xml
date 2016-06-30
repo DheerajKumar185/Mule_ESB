@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:twitter="http://www.mulesoft.org/schema/mule/twitter" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.7.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/twitter http://www.mulesoft.org/schema/mule/twitter/current/mule-twitter.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
+    <twitter:config name="Twitter" accessKey="842084556-kaeNbVicjzoeXl1Eu8rxYo8nNCf0C7yAtg0axVRM" accessSecret="aV79rs0GRTDFzIKJpA3pyMmTZhXCcrabOVMLptBVo8ZBn" consumerKey="YVR1IdC3MR18Dsic0KjFZOc9W" consumerSecret="HkossrgcsvMxAaNu6MoOxsALujmycCuCm7HNRF6GqdrL1D9X4g" doc:name="Twitter"/>
+    <flow name="twitter-integrationFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/twitter-updatestatus" doc:name="HTTP"/>
+        <twitter:show-user config-ref="Twitter" doc:name="Twitter"/>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+    </flow>
+</mule>

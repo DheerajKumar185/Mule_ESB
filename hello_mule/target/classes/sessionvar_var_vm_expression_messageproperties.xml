@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.7.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+    <vm:connector name="VM" validateConnections="true" doc:name="VM"/>
+    <flow name="sessionvar_var_vm_expression_messagepropertiesFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/var-session/*" doc:name="HTTP"/>
+        <set-session-variable variableName="SV1" value="1" doc:name="Session Variable"/>
+        <set-variable variableName="V1" value="2" doc:name="Variable"/>
+        <vm:outbound-endpoint exchange-pattern="request-response" path="vmq" connector-ref="VM" doc:name="VM"/>
+        <expression-component doc:name="Expression"><![CDATA[payload = ['In '+ flow.name + ' : Session Vars are ' + sessionVars + ' & Flow vars are ' + flowVars + ' and ' + message.inboundProperties['Payload2']]]]></expression-component>
+        <object-to-string-transformer doc:name="Object to String"/>
+    </flow>
+    <flow name="sessionvar_var_vm_expression_messagepropertiesFlow1">
+        <vm:inbound-endpoint exchange-pattern="request-response" path="vmq" connector-ref="VM" doc:name="VM"/>
+        <set-session-variable variableName="SV2" value="SV2" doc:name="Session Variable"/>
+        <set-variable variableName="V2" value="V2" doc:name="Variable"/>
+        <expression-component doc:name="Expression"><![CDATA[payload = ['In ' + flow.name + ' : Session Vars are ' + sessionVars + ' & Flow vars are ' + flowVars]]]></expression-component>
+        <message-properties-transformer doc:name="Message Properties">
+            <add-message-property key="Payload2" value="#[payload]"/>
+        </message-properties-transformer>
+    </flow>
+</mule>
+
+<!-- http://localhost:8081/var-session?name=dheeraj&age=26 -->
